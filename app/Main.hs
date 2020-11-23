@@ -1,7 +1,7 @@
 module Main where
 
-import Lib
-import Control.Monad.Free
+import           Control.Monad.Free
+import           Lib
 
 main :: IO ()
 main = someFunc
@@ -45,7 +45,7 @@ data Foo a n = Bar a n | Baz deriving (Show, Eq)
 
 instance Functor (Foo a) where
   fmap f (Bar a foo) = Bar a (f foo)
-  fmap f Baz = Baz
+  fmap f Baz         = Baz
 
 showFoo :: (Show a, Show n) => Free (Foo a) n -> String
 showFoo (Pure a)         = "return " ++ (show a) ++ "\n"
@@ -64,4 +64,43 @@ Bar 42
 Bar 43
 return 45
 *Main Lib> putStr $ showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
+-}
+
+type Prod = (,)
+prod :: String -> Free (Prod String) ()
+prod s = Free ((,) s (Pure()))
+
+prog :: Free (Prod String) ()
+prog = do
+  prod "foo"
+  prod "bar"
+
+{-
+λ> fmap (+1) $ prod "foo" 2
+("foo",3)
+λ> Free $ prod "foo" (Pure())
+Free ("foo",Pure ())
+λ> Free $ prod "foo" (Pure()) >>= Free $ prod "bar" (Pure())
+λ> Free $ prod "foo" (Pure())
+Free ("foo",Pure ())
+λ> :t Free $ prod "foo" (Pure())
+Free $ prod "foo" (Pure()) :: Free ((,) [Char]) ()
+λ> (Free $ prod "foo" (Pure())) >>= \_ -> Pure()
+Free ("foo",Pure ())
+λ> Free ( prod "foo" (Pure()) ) >>= \_ -> Free ( prod "bar" (Pure()) )
+Free ("foo",Free ("bar",Pure ()))
+λ> pr s = Free (prod s (Pure()))
+λ> pr "foo"
+Free ("foo",Pure ())
+λ> pr "foo" >>= \_ -> pr "bar"
+Free ("foo",Free ("bar",Pure ()))
+λ> do {  pr "foo"; pr "bar" }
+Free ("foo",Free ("bar",Pure ()))
+λ> :{
+*Main Lib| p = do
+*Main Lib|   pr "foo"
+*Main Lib|   pr "bar"
+*Main Lib| :}
+λ> p
+Free ("foo",Free ("bar",Pure ()))
 -}
