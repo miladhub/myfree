@@ -54,10 +54,13 @@ showFoo (Pure a)         = "return " ++ (show a) ++ "\n"
 showFoo (Free Baz)       = "Baz\n"
 showFoo (Free (Bar a n)) = "Bar " ++ (show a) ++ "\n" ++ (showFoo n)
 
-program' :: Free (Foo Char) Int
+--program' :: Free (Foo Char) Int
 program' = do
     Pure 42
-    Free Baz
+    Free (Bar "foo" (Pure ()))
+    Free (Bar "bar" (Pure ()))
+    Pure 45
+--    Free Baz
     --Free (Bar (Pure 44))
     --
 {-
