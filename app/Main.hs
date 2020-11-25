@@ -17,16 +17,18 @@ instance Functor (Toy b) where
     fmap f (Bell     next) = Bell     (f next)
     fmap f  Done           = Done
 
-output :: a -> Free (Toy a) ()
+type FToy a = Free (Toy a) ()
+
+output :: a -> FToy a
 output x = Free (Output x (Pure ()))
 
-bell :: Free (Toy a) ()
+bell :: FToy a
 bell = Free (Bell (Pure ()))
 
-done :: Free (Toy a) r
+done :: FToy a
 done = Free Done
 
-program :: Free (Toy Char) r
+program :: FToy Char
 program = do
     bell
     done
@@ -66,11 +68,10 @@ return 45
 *Main Lib> putStr $ showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
 -}
 
-type Prod = (,)
-prod :: String -> Free (Prod String) ()
+prod :: String -> Free ((,) String) ()
 prod s = Free ((,) s (Pure()))
 
-prog :: Free (Prod String) ()
+prog :: Free ((,) String) ()
 prog = do
   prod "foo"
   prod "bar"
@@ -103,4 +104,108 @@ Free ("foo",Free ("bar",Pure ()))
 *Main Lib| :}
 λ> p
 Free ("foo",Free ("bar",Pure ()))
+-}
+
+{-
+
+data Toy b next =
+    Output b next
+  | Bell next
+  | Done
+  deriving (Show, Eq)
+
+instance Functor (Toy b) where
+    fmap f (Output x next) = Output x (f next)
+    fmap f (Bell     next) = Bell     (f next)
+    fmap f  Done           = Done
+
+output :: a -> Free (Toy a) ()
+output x = Free (Output x (Pure ()))
+
+bell :: Free (Toy a) ()     
+bell = Free (Bell (Pure ()))
+
+done :: Free (Toy a) r
+done = Free Done
+
+-}
+
+{-
+data Cmd a next =
+    Print String next
+  | GetLine (String -> next)
+  | Return a
+
+instance Functor (Cmd a) where
+  fmap f (Print s next)  = Print s (f next)
+  fmap f (GetLine fnext) = GetLine (f . fnext)
+  fmap f (Return a)      = Return a
+
+type FCmd a = Free (Cmd ()) a
+
+print' :: String -> FCmd ()
+print' s = Free (Print s (Pure ())) 
+
+read' :: FCmd String
+read' = Free (GetLine Pure)
+
+return' :: a -> FCmd a
+return' = Pure
+
+pr' :: FCmd Int
+pr' = do
+  r <- read'
+  print' "foo"
+  return' $ length r
+
+int' :: FCmd a -> IO a
+int' (Free (Print s n)) = do
+  putStrLn s
+  int' n
+int' (Free (GetLine f)) = do
+  l <- getLine
+  int' $ f l
+int' (Pure a) = return a
+-}
+
+data Cmd next =
+    Print String next
+  | GetLine (String -> next)
+
+instance Functor Cmd where
+  fmap f (Print s next)  = Print s (f next)
+  fmap f (GetLine fnext) = GetLine (f . fnext)
+
+type FCmd a = Free Cmd a
+
+print' :: String -> FCmd ()
+print' s = Free (Print s (Pure ())) 
+
+read' :: FCmd String
+read' = Free (GetLine Pure)
+
+return' :: a -> FCmd a
+return' = Pure
+
+pr' :: FCmd Int
+pr' = do
+  r <- read'
+  print' "foo"
+  return' $ length r
+
+int' :: FCmd a -> IO a
+int' (Free (Print s n)) = do     
+  putStrLn s
+  int' n
+int' (Free (GetLine f)) = do
+  l <- getLine
+  int' $ f l
+int' (Pure a) = return a
+
+{-
+Free (GetLine Pure) >>= \s -> Free (Print s (Pure ())) 
+  = Free (fmap (>>= (\s -> Free (Print s (Pure ())) )) (GetLine Pure))
+  = Free (GetLine (>>= (\s -> Free (Print s (Pure ())) )) . Pure)
+  = Free (GetLine (\s -> Free (Print s (Pure ()))))
+Free a >>= f = Free (fmap (>>= f) a)
 -}
