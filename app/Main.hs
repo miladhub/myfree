@@ -54,7 +54,7 @@ showFoo (Pure a)         = "return " ++ (show a) ++ "\n"
 showFoo (Free Baz)       = "Baz\n"
 showFoo (Free (Bar a n)) = "Bar " ++ (show a) ++ "\n" ++ (showFoo n)
 
---program' :: Free (Foo Char) Int
+program' :: Free (Foo String) Int
 program' = do
     Pure 42
     Free (Bar "foo" (Pure ()))
@@ -62,7 +62,7 @@ program' = do
     Pure 45
 --    Free Baz
     --Free (Bar (Pure 44))
-    --
+    -- Baz terminates, Pure probably doesn't
 {-
  - putStr $ showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
 Bar 42
@@ -107,30 +107,6 @@ Free ("foo",Free ("bar",Pure ()))
 *Main Lib| :}
 λ> p
 Free ("foo",Free ("bar",Pure ()))
--}
-
-{-
-
-data Toy b next =
-    Output b next
-  | Bell next
-  | Done
-  deriving (Show, Eq)
-
-instance Functor (Toy b) where
-    fmap f (Output x next) = Output x (f next)
-    fmap f (Bell     next) = Bell     (f next)
-    fmap f  Done           = Done
-
-output :: a -> Free (Toy a) ()
-output x = Free (Output x (Pure ()))
-
-bell :: Free (Toy a) ()     
-bell = Free (Bell (Pure ()))
-
-done :: Free (Toy a) r
-done = Free Done
-
 -}
 
 {-
