@@ -187,4 +187,19 @@ Free (GetLine Pure) >>= \s -> Free (Print s (Pure ()))
   = Free (GetLine (>>= (\s -> Free (Print s (Pure ())) )) . Pure)
   = Free (GetLine (\s -> Free (Print s (Pure ()))))
 Free a >>= f = Free (fmap (>>= f) a)
+
+---
+
+g = (\s -> Free (Print s (Pure ())) )
+
+    Free (GetLine Pure) >>= g
+  = Free (fmap (>>= g) (GetLine Pure))
+  = Free (GetLine (>>= g) . Pure)
+  = Free (GetLine \s -> (>>= g) (Pure s) )
+  = Free (GetLine \s -> (Pure s) >>= g )
+  = Free (GetLine \s -> g s )
+  = Free (GetLine g)
+
+Pure a >>= f = f a
+Free a >>= f = Free (fmap (>>= f) a)
 -}
