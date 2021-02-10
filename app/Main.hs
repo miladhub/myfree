@@ -79,6 +79,10 @@ prog = do
   prod "foo"
   prod "bar"
 
+dump :: Free ((,) String) () -> String
+dump (Free ((,) s next)) = s ++ " " ++ (dump next)
+dump (Pure ()) = ""
+
 {-
 λ> fmap (+1) $ prod "foo" 2
 ("foo",3)
@@ -161,7 +165,10 @@ print' :: String -> FCmd ()
 print' s = Free (Print s (Pure ())) 
 
 read' :: FCmd String
-read' = Free (GetLine Pure)
+--read' = Free (GetLine Pure)
+read' = liftF (GetLine id)
+--Free (fmap Pure (GetLine id)) = Free (GetLine (Pure . id)) = Free (GetLine Pure)
+
 
 return' :: a -> FCmd a
 return' = Pure
