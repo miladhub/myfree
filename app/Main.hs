@@ -162,7 +162,8 @@ instance Functor Cmd where
 type FCmd a = Free Cmd a
 
 print' :: String -> FCmd ()
-print' s = Free (Print s (Pure ())) 
+--print' s = Free (Print s (Pure ())) 
+print' s = liftF (Print s ())
 
 read' :: FCmd String
 --read' = Free (GetLine Pure)
@@ -202,7 +203,6 @@ g = (\s -> Free (Print s (Pure ())) )
     Free (GetLine Pure) >>= g
   = Free (fmap (>>= g) (GetLine Pure))
   = Free (GetLine (>>= g) . Pure)
-  = Free (GetLine \s -> (>>= g) (Pure s) )
   = Free (GetLine \s -> (Pure s) >>= g )
   = Free (GetLine \s -> g s )
   = Free (GetLine g)
