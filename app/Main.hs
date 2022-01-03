@@ -1,10 +1,9 @@
 module Main where
 
 import           Control.Monad.Free
-import           Lib
 
 main :: IO ()
-main = someFunc
+main = putStrLn "foo"
 
 data Toy b next =
     Output b next

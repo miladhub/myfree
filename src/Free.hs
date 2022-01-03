@@ -1,21 +1,24 @@
 module Free where
 
-data Free f r = Free (f (Free f r)) | Pure r
+data MyFree f r = MyFree (f (MyFree f r)) | MyPure r
 
-instance (Functor f) => Functor (Free f) where
-  fmap f (Pure a) = Pure (f a)
-  fmap f (Free x) = Free $ fmap (fmap f) x
+instance (Functor f) => Functor (MyFree f) where
+  fmap f (MyPure a) = MyPure (f a)
+  fmap f (MyFree x) = MyFree $ fmap (fmap f) x
 
-instance (Functor f) => Applicative (Free f) where
-  pure = Pure
-  Pure a <*> Pure b  = Pure (a b)
-  Pure a <*> Free fb = Free $ fmap (fmap a) fb
-  Free fa <*> b      = Free $ fmap (<*> b) fa
+instance (Functor f) => Applicative (MyFree f) where
+  pure = MyPure
+  MyPure a <*> MyPure b  = MyPure (a b)
+  MyPure a <*> MyFree fb = MyFree $ fmap (fmap a) fb
+  MyFree fa <*> b      = MyFree $ fmap (<*> b) fa
 
-instance (Functor f) => Monad (Free f) where
+instance (Functor f) => Monad (MyFree f) where
   return = pure
-  (Free x) >>= f = Free $ fmap (>>= f) x
-  (Pure r) >>= f = f r
+  -- x :: f (MyFree f a)
+  -- f :: a -> MyFree f b
+  -- fmap (>>= f) x :: f (MyFree f b)
+  (MyFree x) >>= f = MyFree $ fmap (>>= f) x
+  (MyPure r) >>= f = f r
 
 data Toy b next =
     Output b next
@@ -27,6 +30,6 @@ instance Functor (Toy b) where
     fmap f (Bell     next) = Bell     (f next)
     fmap f  Done           = Done
 
-output :: a -> Free (Toy a) ()
-output x = Free (Output x (Pure ()))
+output :: a -> MyFree (Toy a) ()
+output x = MyFree (Output x (MyPure ()))
 

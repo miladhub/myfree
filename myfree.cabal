@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ea830a24ad92f5b8c802be9c0aadae42bedb8531a0ded6f60297dc29787fd4e7
+-- hash: 1eee6039395a22213f9405ac007ee7b18255595a3ff71f7caabc8db6b599a58d
 
 name:           myfree
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Free
       Lib
   other-modules:
       Paths_myfree
