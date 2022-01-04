@@ -49,9 +49,9 @@ instance Functor (Foo a) where
   fmap f Baz         = Baz
 
 showFoo :: (Show a, Show n) => Free (Foo a) n -> String
-showFoo (Pure a)         = "return " ++ (show a) ++ "\n"
-showFoo (Free Baz)       = "Baz\n"
-showFoo (Free (Bar a n)) = "Bar " ++ (show a) ++ "\n" ++ (showFoo n)
+showFoo (Pure a)         = "Pure " ++ (show a)
+showFoo (Free Baz)       = "Free Baz"
+showFoo (Free (Bar a n)) = "Free (Bar " ++ (show a) ++ " (" ++ (showFoo n) ++ "))"
 
 program' :: Free (Foo String) Int
 program' = do
@@ -63,11 +63,8 @@ program' = do
     --Free (Bar (Pure 44))
     -- Baz terminates, Pure probably doesn't
 {-
- - putStr $ showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
-Bar 42
-Bar 43
-return 45
-*Main Lib> putStr $ showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
+> showFoo $ do { Free (Bar 42 (Pure ())); Free (Bar 43 (Pure ())); Pure 45 }
+"Free (Bar 42 (Free (Bar 43 (Pure 45))))"
 -}
 
 prod :: String -> Free ((,) String) ()
@@ -165,7 +162,13 @@ print' :: String -> FCmd ()
 print' s = liftF (Print s ())
 
 read' :: FCmd String
+--Pure :: a -> Free f a
+--GetLine :: (String -> next) -> Cmd next
+--GetLine Pure :: Cmd (Free Cmd String)
+--  next :: Free Cmd String
+--  Pure :: String -> Free Cmd String
 --read' = Free (GetLine Pure)
+--Free (GetLine Pure) = Free (Cmd (Free Cmd String)) :: Free Cmd String :: FCmd String
 read' = liftF (GetLine id)
 --Free (fmap Pure (GetLine id)) = Free (GetLine (Pure . id)) = Free (GetLine Pure)
 
